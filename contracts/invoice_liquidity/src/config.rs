@@ -1,0 +1,75 @@
+use soroban_sdk::{contracttype, Address, Env};
+
+#[contracttype]
+#[derive(Clone, Debug, PartialEq)]
+pub struct Config {
+    pub high_rep_threshold: u8,
+    pub bonus_bps: u32,
+    pub min_discount_rate_bps: u32,
+}
+
+#[contracttype]
+pub enum ConfigKey {
+    Config,
+    Admin,
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub enum ConfigError {
+    Unauthorized,
+    InvalidBonusBps,
+    InvalidMinDiscountRate,
+}
+
+const MAX_BONUS_BPS: u32 = 500;
+
+pub fn get_admin(env: &Env) -> Result<Address, ConfigError> {
+    env.storage()
+        .instance()
+        .get(&ConfigKey::Admin)
+        .ok_or(ConfigError::Unauthorized)
+}
+
+pub fn set_admin(env: &Env, admin: &Address) {
+    env.storage().instance().set(&ConfigKey::Admin, admin);
+}
+
+pub fn get_config(env: &Env) -> Result<Config, ConfigError> {
+    env.storage()
+        .instance()
+        .get(&ConfigKey::Config)
+        .ok_or(ConfigError::Unauthorized)
+}
+
+pub fn set_config(env: &Env, config: &Config) -> Result<(), ConfigError> {
+    if config.bonus_bps > MAX_BONUS_BPS {
+        return Err(ConfigError::InvalidBonusBps);
+    }
+    if config.min_discount_rate_bps == 0 {
+        return Err(ConfigError::InvalidMinDiscountRate);
+    }
+    env.storage().instance().set(&ConfigKey::Config, config);
+    Ok(())
+}
+
+pub fn update_config(
+    env: &Env,
+    caller: &Address,
+    high_rep_threshold: u8,
+    bonus_bps: u32,
+    min_discount_rate_bps: u32,
+) -> Result<(), ConfigError> {
+    let admin = get_admin(env)?;
+    caller.require_auth();
+    if caller != &admin {
+        return Err(ConfigError::Unauthorized);
+    }
+
+    let new_config = Config {
+        high_rep_threshold,
+        bonus_bps,
+        min_discount_rate_bps,
+    };
+
+    set_config(env, &new_config)
+}

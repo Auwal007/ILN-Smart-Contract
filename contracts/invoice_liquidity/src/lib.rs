@@ -1,8 +1,10 @@
 #![no_std]
 
-mod errors;
-mod events;
-mod invoice;
+pub mod errors;
+pub mod events;
+pub mod invoice;
+pub mod config;
+pub mod rate_logic;
 mod tests_regression;
 
 pub use errors::ContractError;
