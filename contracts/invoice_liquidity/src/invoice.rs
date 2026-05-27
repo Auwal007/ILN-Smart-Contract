@@ -57,6 +57,17 @@ pub struct PayerStats {
     pub total_volume: i128,
 }
 
+#[contracttype]
+#[derive(Clone, Debug, Default)]
+pub struct ContractStats {
+    pub total_invoices: u64,
+    pub total_funded: u64,
+    pub total_paid: u64,
+    pub total_volume_usdc: i128,
+    pub total_volume_eurc: i128,
+    pub total_volume_xlm: i128,
+}
+
 // ----------------------------------------------------------------
 // Issue #36: Appeal record stored per invoice
 // ----------------------------------------------------------------
@@ -109,6 +120,15 @@ pub enum StorageKey {
     LpScore(Address),    // LP reputation score (distinct from PayerScore)
     FundQueue(u64),      // Vec<LpFundRequest> — LPs that joined the queue for an invoice
     QueueResolution(u64), // Address — the LP that won the priority queue
+    // Contract stats counters
+    TotalInvoices,       // Total invoices submitted
+    TotalFunded,         // Total invoices fully funded
+    TotalPaid,           // Total invoices paid
+    TotalVolumeUsdc,     // Total volume in USDC
+    TotalVolumeEurc,     // Total volume in EURC
+    TotalVolumeXlm,      // Total volume in XLM
+    // Pause/unpause
+    Paused,              // Boolean flag for contract pause state
 }
 
 // ----------------------------------------------------------------
@@ -266,4 +286,115 @@ pub fn save_queue_resolution(env: &Env, invoice_id: u64, approved_lp: &Address) 
     env.storage()
         .persistent()
         .set(&StorageKey::QueueResolution(invoice_id), approved_lp);
+// Contract stats helpers
+// ----------------------------------------------------------------
+
+pub fn get_contract_stats(env: &Env) -> ContractStats {
+    ContractStats {
+        total_invoices: env
+            .storage()
+            .persistent()
+            .get(&StorageKey::TotalInvoices)
+            .unwrap_or(0),
+        total_funded: env
+            .storage()
+            .persistent()
+            .get(&StorageKey::TotalFunded)
+            .unwrap_or(0),
+        total_paid: env
+            .storage()
+            .persistent()
+            .get(&StorageKey::TotalPaid)
+            .unwrap_or(0),
+        total_volume_usdc: env
+            .storage()
+            .persistent()
+            .get(&StorageKey::TotalVolumeUsdc)
+            .unwrap_or(0),
+        total_volume_eurc: env
+            .storage()
+            .persistent()
+            .get(&StorageKey::TotalVolumeEurc)
+            .unwrap_or(0),
+        total_volume_xlm: env
+            .storage()
+            .persistent()
+            .get(&StorageKey::TotalVolumeXlm)
+            .unwrap_or(0),
+    }
+}
+
+pub fn increment_total_invoices(env: &Env) {
+    let current: u64 = env
+        .storage()
+        .persistent()
+        .get(&StorageKey::TotalInvoices)
+        .unwrap_or(0);
+    env.storage()
+        .persistent()
+        .set(&StorageKey::TotalInvoices, &(current + 1));
+}
+
+pub fn increment_total_funded(env: &Env) {
+    let current: u64 = env
+        .storage()
+        .persistent()
+        .get(&StorageKey::TotalFunded)
+        .unwrap_or(0);
+    env.storage()
+        .persistent()
+        .set(&StorageKey::TotalFunded, &(current + 1));
+}
+
+pub fn increment_total_paid(env: &Env) {
+    let current: u64 = env
+        .storage()
+        .persistent()
+        .get(&StorageKey::TotalPaid)
+        .unwrap_or(0);
+    env.storage()
+        .persistent()
+        .set(&StorageKey::TotalPaid, &(current + 1));
+}
+
+pub fn add_volume(env: &Env, token: &Address, amount: i128, usdc_addr: &Address, eurc_addr: &Address, xlm_addr: &Address) {
+    if token == usdc_addr {
+        let current: i128 = env
+            .storage()
+            .persistent()
+            .get(&StorageKey::TotalVolumeUsdc)
+            .unwrap_or(0);
+        env.storage()
+            .persistent()
+            .set(&StorageKey::TotalVolumeUsdc, &(current + amount));
+    } else if token == eurc_addr {
+        let current: i128 = env
+            .storage()
+            .persistent()
+            .get(&StorageKey::TotalVolumeEurc)
+            .unwrap_or(0);
+        env.storage()
+            .persistent()
+            .set(&StorageKey::TotalVolumeEurc, &(current + amount));
+    } else if token == xlm_addr {
+        let current: i128 = env
+            .storage()
+            .persistent()
+            .get(&StorageKey::TotalVolumeXlm)
+            .unwrap_or(0);
+        env.storage()
+            .persistent()
+            .set(&StorageKey::TotalVolumeXlm, &(current + amount));
+    }
+}
+
+pub fn is_paused(env: &Env) -> bool {
+    env.storage()
+        .instance()
+        .get(&StorageKey::Paused)
+        .unwrap_or(false)
+}
+
+pub fn set_paused(env: &Env, paused: bool) {
+    env.storage().instance().set(&StorageKey::Paused, &paused);
 }

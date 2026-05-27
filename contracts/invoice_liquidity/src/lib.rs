@@ -1,9 +1,12 @@
 #![no_std]
 
-mod errors;
-mod events;
-mod invoice;
+pub mod errors;
+pub mod events;
+pub mod invoice;
+pub mod config;
+pub mod rate_logic;
 mod tests_regression;
+mod tests_new_features;
 
 pub use errors::ContractError;
 pub use invoice::{Invoice, InvoiceParams, InvoiceStatus};
@@ -28,6 +31,16 @@ use invoice::{
 
 // 30-day window in seconds for a payer to file an appeal after a default.
 const APPEAL_WINDOW_SECONDS: u64 = 30 * 24 * 60 * 60;
+
+// ----------------------------------------------------------------
+// CONSTANTS
+// ----------------------------------------------------------------
+
+/// Minimum invoice duration: 24 hours (in seconds)
+const MIN_INVOICE_DURATION: u64 = 24 * 60 * 60;
+
+/// Maximum invoice duration: 365 days (in seconds)
+const MAX_INVOICE_DURATION: u64 = 365 * 24 * 60 * 60;
 
 // ----------------------------------------------------------------
 // CONTRACT
@@ -141,6 +154,36 @@ impl InvoiceLiquidityContract {
     }
 
     // ------------------------------------------------------------
+    // pause / unpause (emergency controls)
+    // ------------------------------------------------------------
+    pub fn pause(env: Env) -> Result<(), ContractError> {
+        let admin: Address = env.storage().instance().get(&StorageKey::Admin).unwrap();
+        admin.require_auth();
+        set_paused(&env, true);
+        env.events().publish_event(&ContractPaused {
+            timestamp: env.ledger().timestamp(),
+        });
+        Ok(())
+    }
+
+    pub fn unpause(env: Env) -> Result<(), ContractError> {
+        let admin: Address = env.storage().instance().get(&StorageKey::Admin).unwrap();
+        admin.require_auth();
+        set_paused(&env, false);
+        env.events().publish_event(&ContractUnpaused {
+            timestamp: env.ledger().timestamp(),
+        });
+        Ok(())
+    }
+
+    // ------------------------------------------------------------
+    // get_contract_stats (read-only view)
+    // ------------------------------------------------------------
+    pub fn get_contract_stats(env: Env) -> ContractStats {
+        get_contract_stats(&env)
+    }
+
+    // ------------------------------------------------------------
     // submit_invoice (NOW TOKEN-AWARE)
     // ------------------------------------------------------------
     pub fn submit_invoice(
@@ -152,6 +195,10 @@ impl InvoiceLiquidityContract {
         discount_rate: u32,
         token: Address,
     ) -> Result<u64, ContractError> {
+        if is_paused(&env) {
+            return Err(ContractError::ContractPaused);
+        }
+
         freelancer.require_auth();
 
         validate_invoice_terms(&env, amount, due_date, discount_rate)?;
@@ -179,6 +226,9 @@ impl InvoiceLiquidityContract {
 
         save_invoice(&env, &invoice);
 
+        // Increment total invoices counter
+        increment_total_invoices(&env);
+
         env.events().publish_event(&InvoiceSubmitted {
             invoice_id: invoice.id,
             freelancer: invoice.freelancer.clone(),
@@ -205,6 +255,10 @@ impl InvoiceLiquidityContract {
         due_date: u64,
         discount_rate: u32,
     ) -> Result<(), ContractError> {
+        if is_paused(&env) {
+            return Err(ContractError::ContractPaused);
+        }
+
         if !invoice_exists(&env, invoice_id) {
             return Err(ContractError::InvoiceNotFound);
         }
@@ -264,6 +318,10 @@ impl InvoiceLiquidityContract {
         env: Env,
         invoices: Vec<InvoiceParams>,
     ) -> Result<Vec<u64>, ContractError> {
+        if is_paused(&env) {
+            return Err(ContractError::ContractPaused);
+        }
+
         if invoices.len() > 10 {
             return Err(ContractError::BatchTooLarge);
         }
@@ -299,6 +357,9 @@ impl InvoiceLiquidityContract {
             };
 
             save_invoice(&env, &invoice);
+
+            // Increment total invoices counter
+            increment_total_invoices(&env);
 
             env.events().publish_event(&InvoiceSubmitted {
                 invoice_id: invoice.id,
@@ -432,6 +493,10 @@ impl InvoiceLiquidityContract {
         invoice_id: u64,
         fund_amount: i128,
     ) -> Result<(), ContractError> {
+        if is_paused(&env) {
+            return Err(ContractError::ContractPaused);
+        }
+
         funder.require_auth();
 
         if !invoice_exists(&env, invoice_id) {
@@ -524,6 +589,36 @@ impl InvoiceLiquidityContract {
 
         save_invoice(&env, &invoice);
 
+        // Increment total funded counter if fully funded
+        if invoice.status == InvoiceStatus::Funded {
+            increment_total_funded(&env);
+        }
+
+        // Add to volume counter - get token list from storage
+        let token_list: Vec<Address> = env
+            .storage()
+            .persistent()
+            .get(&StorageKey::TokenList)
+            .unwrap_or(Vec::new(&env));
+        
+        // Get token addresses from list, or use dummy addresses if not available
+        let usdc_addr = if token_list.len() > 0 {
+            token_list.get(0).unwrap()
+        } else {
+            invoice.token.clone()
+        };
+        let eurc_addr = if token_list.len() > 1 {
+            token_list.get(1).unwrap()
+        } else {
+            invoice.token.clone()
+        };
+        let xlm_addr = if token_list.len() > 2 {
+            token_list.get(2).unwrap()
+        } else {
+            invoice.token.clone()
+        };
+        add_volume(&env, &invoice.token, fund_amount, &usdc_addr, &eurc_addr, &xlm_addr);
+
         notify_distribution_funding(&env, &funder, fund_amount);
 
         env.events().publish_event(&InvoiceFunded {
@@ -552,6 +647,10 @@ impl InvoiceLiquidityContract {
         invoice_id: u64,
         new_freelancer: Address,
     ) -> Result<(), ContractError> {
+        if is_paused(&env) {
+            return Err(ContractError::ContractPaused);
+        }
+
         if !invoice_exists(&env, invoice_id) {
             return Err(ContractError::InvoiceNotFound);
         }
@@ -591,6 +690,10 @@ impl InvoiceLiquidityContract {
     // cancel_invoice
     // ------------------------------------------------------------
     pub fn cancel_invoice(env: Env, invoice_id: u64) -> Result<(), ContractError> {
+        if is_paused(&env) {
+            return Err(ContractError::ContractPaused);
+        }
+
         if !invoice_exists(&env, invoice_id) {
             return Err(ContractError::InvoiceNotFound);
         }
@@ -671,6 +774,10 @@ impl InvoiceLiquidityContract {
     // mark_paid (USES invoice.token)
     // ------------------------------------------------------------
     pub fn mark_paid(env: Env, invoice_id: u64) -> Result<(), ContractError> {
+        if is_paused(&env) {
+            return Err(ContractError::ContractPaused);
+        }
+
         if !invoice_exists(&env, invoice_id) {
             return Err(ContractError::InvoiceNotFound);
         }
@@ -738,6 +845,9 @@ impl InvoiceLiquidityContract {
 
         save_invoice(&env, &invoice);
 
+        // Increment total paid counter
+        increment_total_paid(&env);
+
         let paid_on_time = env.ledger().timestamp() <= invoice.due_date;
         notify_distribution_settlement(&env, &invoice.freelancer, &invoice.payer, paid_on_time);
 
@@ -801,6 +911,10 @@ impl InvoiceLiquidityContract {
     // claim_default
     // ----------------------------------------------------------------
     pub fn claim_default(env: Env, funder: Address, invoice_id: u64) -> Result<(), ContractError> {
+        if is_paused(&env) {
+            return Err(ContractError::ContractPaused);
+        }
+
         funder.require_auth();
 
         if !invoice_exists(&env, invoice_id) {
@@ -1088,6 +1202,8 @@ fn validate_invoice_terms(
     }
 
     let now = env.ledger().timestamp();
+    
+    // Validate due date is in the future
     if due_date <= now {
         return Err(ContractError::InvalidDueDate);
     }
