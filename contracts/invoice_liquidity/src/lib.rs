@@ -626,6 +626,18 @@ impl InvoiceLiquidityContract {
 
         notify_distribution_funding(&env, &funder, fund_amount);
 
+        let now = env.ledger().timestamp();
+
+        let seconds_to_due = if invoice.due_date > now {
+            invoice.due_date - now
+        } else {
+            0
+        };
+
+        let days_to_due = seconds_to_due / (24 * 60 * 60);
+
+        let effective_yield_bps = ((invoice.discount_rate as u64 * days_to_due) / 365) as u32;
+
         env.events().publish_event(&InvoiceFunded {
             invoice_id: invoice.id,
             funder: funder.clone(),
@@ -639,6 +651,11 @@ impl InvoiceLiquidityContract {
             discount_rate: invoice.discount_rate,
             funded_at: invoice.funded_at,
             status: invoice.status.clone(),
+
+            // NEW
+            lp: funder.clone(),
+            effective_yield_bps,
+            timestamp: now,
         });
 
         Ok(())
@@ -1313,3 +1330,5 @@ mod tests_storage;
 #[cfg(test)]
 mod tests_invoice_paid_event;
 mod tests_reputation_edge_cases;
+#[cfg(test)]
+mod tests_lp_funding_details_event;

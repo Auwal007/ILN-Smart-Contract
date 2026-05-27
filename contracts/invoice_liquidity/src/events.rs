@@ -42,18 +42,28 @@ pub struct InvoiceUpdated {
 pub struct InvoiceFunded {
     #[topic]
     pub invoice_id: u64,
+
     #[topic]
     pub funder: Address,
+
     pub freelancer: Address,
     pub payer: Address,
     pub token: Address,
+
     pub fund_amount: i128,
     pub amount_funded: i128,
     pub invoice_amount: i128,
+
     pub due_date: u64,
     pub discount_rate: u32,
+
     pub funded_at: Option<u64>,
     pub status: InvoiceStatus,
+
+    // NEW FIELDS
+    pub lp: Address,
+    pub effective_yield_bps: u32,
+    pub timestamp: u64,
 }
 
 #[contractevent(topics = ["paid"])]
