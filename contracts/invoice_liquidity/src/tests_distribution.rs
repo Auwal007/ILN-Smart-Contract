@@ -100,7 +100,7 @@ fn distribution_hooks_track_lp_freelancer_and_payer() {
     ledger.timestamp = 1_700_000_000;
     env.ledger().set(ledger.clone());
 
-    let due_date = ledger.timestamp + 3600;
+    let due_date = ledger.timestamp + (24 * 60 * 60) + 3600; // 25 hours in the future
     let submitted = invoice.submit_invoice(
         &freelancer,
         &payer,

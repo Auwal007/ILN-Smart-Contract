@@ -174,19 +174,34 @@ fn regression_due_date_must_be_future() {
     );
 
     assert!(result_past.is_err());
+    assert_eq!(result_past, Err(Ok(ContractError::InvalidDueDate)));
 
-    // Valid future due_date should work
-    let future_date = now + 1;
-    let valid_result = t.contract.submit_invoice(
+    // Test: due_date less than 24 hours in the future should be rejected
+    let too_soon = now + (12 * 60 * 60); // 12 hours - too soon
+    let result_too_soon = t.contract.try_submit_invoice(
         &t.freelancer,
         &t.payer,
         &ONE_USDC,
-        &future_date,
+        &too_soon,
         &100,
         &t.token.address,
     );
 
-    assert_eq!(valid_result, 1);
+    assert!(result_too_soon.is_err());
+    assert_eq!(result_too_soon, Err(Ok(ContractError::DueDateTooSoon)));
+
+    // Test: valid due_date (24+ hours in future) should succeed
+    let valid_date = now + (24 * 60 * 60) + 1; // 24 hours + 1 second
+    let result_valid = t.contract.try_submit_invoice(
+        &t.freelancer,
+        &t.payer,
+        &ONE_USDC,
+        &valid_date,
+        &100,
+        &t.token.address,
+    );
+
+    assert!(result_valid.is_ok());
 }
 
 /// Regression for: Two invoices submitted in same ledger timestamp get different IDs
