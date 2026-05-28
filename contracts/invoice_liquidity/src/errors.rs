@@ -33,8 +33,11 @@ pub enum ContractError {
     NotApprovedFunder = 21,
     /// Invoice is in Appealed state and cannot be acted upon yet.
     InvoiceAppealed = 22,
-    ContractPaused = 17,
-    DueDateTooSoon = 18,
-    DueDateTooFar = 19,
-    SelfInvoice = 20,
+    AlreadyDisputed = 23,
+    NotDisputed = 24,
+    InvoiceDisputed = 25,
+    ContractPaused = 26,
+    DueDateTooSoon = 27,
+    DueDateTooFar = 28,
+    SelfInvoice = 29,
 }

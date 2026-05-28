@@ -1,6 +1,6 @@
 #![cfg(test)]
 
-use invoice_liquidity::config::{set_admin, set_config, update_config, Config, ConfigError};
+use invoice_liquidity::config::{get_config, set_admin, set_config, update_config, Config, ConfigError};
 use invoice_liquidity::invoice::{get_reputation, set_reputation, submit_invoice, InvoiceError};
 use invoice_liquidity::rate_logic::calculate_effective_rate;
 use soroban_sdk::{testutils::Address as _, Address, Env};
@@ -103,14 +103,17 @@ fn test_governance_setters_and_access_control() {
         high_rep_threshold: 80,
         bonus_bps: 200,
         min_discount_rate_bps: 100,
+        decay_rate_bps: 0,
+        decay_period_ledgers: 0,
+        dispute_timeout_ledgers: 0,
     };
     
     assert!(set_config(&env, &initial_config).is_ok());
     
-    let update_res = update_config(&env, &non_admin, 90, 300, 150);
+    let update_res = update_config(&env, &non_admin, 90, 300, 150, 0, 0, 0);
     assert_eq!(update_res, Err(ConfigError::Unauthorized));
 
-    let update_res_admin = update_config(&env, &admin, 90, 300, 150);
+    let update_res_admin = update_config(&env, &admin, 90, 300, 150, 0, 0, 0);
     assert!(update_res_admin.is_ok());
     
     let config = get_config(&env).unwrap();
@@ -118,10 +121,10 @@ fn test_governance_setters_and_access_control() {
     assert_eq!(config.bonus_bps, 300);
     assert_eq!(config.min_discount_rate_bps, 150);
 
-    let invalid_bonus_res = update_config(&env, &admin, 90, 501, 150);
+    let invalid_bonus_res = update_config(&env, &admin, 90, 501, 150, 0, 0, 0);
     assert_eq!(invalid_bonus_res, Err(ConfigError::InvalidBonusBps));
 
-    let invalid_min_rate_res = update_config(&env, &admin, 90, 300, 0);
+    let invalid_min_rate_res = update_config(&env, &admin, 90, 300, 0, 0, 0, 0);
     assert_eq!(invalid_min_rate_res, Err(ConfigError::InvalidMinDiscountRate));
 }
 
@@ -137,6 +140,9 @@ fn test_submit_invoice_flow() {
         high_rep_threshold: 80,
         bonus_bps: 150,
         min_discount_rate_bps: 50,
+        decay_rate_bps: 0,
+        decay_period_ledgers: 0,
+        dispute_timeout_ledgers: 0,
     };
     set_config(&env, &config).unwrap();
 

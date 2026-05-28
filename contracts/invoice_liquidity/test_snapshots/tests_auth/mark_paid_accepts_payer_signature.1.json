@@ -738,7 +738,7 @@
           },
           "ext": "v0"
         },
-        "live_until": 4095
+        "live_until": 2000000
       },
       {
         "entry": {
@@ -824,7 +824,24 @@
               },
               "durability": "persistent",
               "val": {
-                "u32": 51
+                "map": [
+                  {
+                    "key": {
+                      "symbol": "last_activity_ledger"
+                    },
+                    "val": {
+                      "u32": 0
+                    }
+                  },
+                  {
+                    "key": {
+                      "symbol": "score"
+                    },
+                    "val": {
+                      "u32": 51
+                    }
+                  }
+                ]
               }
             }
           },
@@ -1524,32 +1541,19 @@
               },
               {
                 "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAITA4"
+              },
+              {
+                "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAK3IM"
               }
             ],
             "data": {
               "map": [
                 {
                   "key": {
-                    "symbol": "amount"
+                    "symbol": "amount_paid"
                   },
                   "val": {
                     "i128": "1000000000"
-                  }
-                },
-                {
-                  "key": {
-                    "symbol": "discount_amount"
-                  },
-                  "val": {
-                    "i128": "0"
-                  }
-                },
-                {
-                  "key": {
-                    "symbol": "due_date"
-                  },
-                  "val": {
-                    "u64": "1702592000"
                   }
                 },
                 {
@@ -1562,10 +1566,18 @@
                 },
                 {
                   "key": {
-                    "symbol": "funder"
+                    "symbol": "lp_earned"
                   },
                   "val": {
-                    "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAK3IM"
+                    "i128": "0"
+                  }
+                },
+                {
+                  "key": {
+                    "symbol": "lp_payout"
+                  },
+                  "val": {
+                    "i128": "1000000000"
                   }
                 },
                 {
@@ -1574,6 +1586,14 @@
                   },
                   "val": {
                     "bool": true
+                  }
+                },
+                {
+                  "key": {
+                    "symbol": "settlement_timestamp"
+                  },
+                  "val": {
+                    "u64": "1700000000"
                   }
                 },
                 {

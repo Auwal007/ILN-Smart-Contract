@@ -511,7 +511,7 @@
           },
           "ext": "v0"
         },
-        "live_until": 4095
+        "live_until": 2000000
       },
       {
         "entry": {
@@ -561,6 +561,33 @@
               "key": {
                 "vec": [
                   {
+                    "symbol": "LpScore"
+                  },
+                  {
+                    "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAITA4"
+                  }
+                ]
+              },
+              "durability": "persistent",
+              "val": {
+                "u32": 51
+              }
+            }
+          },
+          "ext": "v0"
+        },
+        "live_until": 4095
+      },
+      {
+        "entry": {
+          "last_modified_ledger_seq": 0,
+          "data": {
+            "contract_data": {
+              "ext": "v0",
+              "contract": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOLZM",
+              "key": {
+                "vec": [
+                  {
                     "symbol": "PayerScore"
                   },
                   {
@@ -570,7 +597,24 @@
               },
               "durability": "persistent",
               "val": {
-                "u32": 51
+                "map": [
+                  {
+                    "key": {
+                      "symbol": "last_activity_ledger"
+                    },
+                    "val": {
+                      "u32": 0
+                    }
+                  },
+                  {
+                    "key": {
+                      "symbol": "score"
+                    },
+                    "val": {
+                      "u32": 51
+                    }
+                  }
+                ]
               }
             }
           },

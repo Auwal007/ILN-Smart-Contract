@@ -151,7 +151,7 @@
   ],
   "ledger": {
     "protocol_version": 25,
-    "sequence_number": 0,
+    "sequence_number": 100,
     "timestamp": 1702592001,
     "network_id": "0000000000000000000000000000000000000000000000000000000000000000",
     "base_reserve": 0,
@@ -319,7 +319,7 @@
           },
           "ext": "v0"
         },
-        "live_until": 6311999
+        "live_until": 6312099
       },
       {
         "entry": {
@@ -489,7 +489,7 @@
           },
           "ext": "v0"
         },
-        "live_until": 2000000
+        "live_until": 2000100
       },
       {
         "entry": {
@@ -513,7 +513,7 @@
           },
           "ext": "v0"
         },
-        "live_until": 4095
+        "live_until": 2000100
       },
       {
         "entry": {
@@ -568,7 +568,7 @@
           },
           "ext": "v0"
         },
-        "live_until": 4095
+        "live_until": 4195
       },
       {
         "entry": {
