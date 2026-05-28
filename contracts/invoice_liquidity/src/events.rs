@@ -144,6 +144,18 @@ pub struct AdminChanged {
     pub timestamp: u64,
 }
 
+#[contractevent(topics = ["paused"])]
+#[derive(Clone, Debug, PartialEq)]
+pub struct ContractPaused {
+    pub timestamp: u64,
+}
+
+#[contractevent(topics = ["unpaused"])]
+#[derive(Clone, Debug, PartialEq)]
+pub struct ContractUnpaused {
+    pub timestamp: u64,
+}
+
 // ── Issue #36: appeal_default events ──────────────────────────────────────────
 
 /// Emitted when a payer files an appeal against an unfair default marking.
@@ -169,6 +181,33 @@ pub struct AppealResolved {
     pub payer: Address,
     /// true = appeal upheld (default reversed); false = appeal rejected.
     pub upheld: bool,
+    pub resolved_at: u64,
+}
+
+// ── Dispute events ──────────────────────────────────────────────────────────
+
+/// Emitted when a payer disputes an invoice before settlement.
+#[contractevent(topics = ["disputed"])]
+#[derive(Clone, Debug, PartialEq)]
+pub struct InvoiceDisputed {
+    #[topic]
+    pub invoice_id: u64,
+    #[topic]
+    pub payer: Address,
+    /// SHA-256 hash of off-chain dispute evidence.
+    pub reason_hash: BytesN<32>,
+    pub disputed_at: u64,
+}
+
+/// Emitted when governance resolves a dispute.
+#[contractevent(topics = ["dispute_resolved"])]
+#[derive(Clone, Debug, PartialEq)]
+pub struct DisputeResolved {
+    #[topic]
+    pub invoice_id: u64,
+    #[topic]
+    pub resolution_hash: BytesN<32>, // Optional hash of resolution details
+    pub resolution: u32,             // Ruling: 1 = Upheld (Payer right), 2 = Rejected (Freelancer right)
     pub resolved_at: u64,
 }
 

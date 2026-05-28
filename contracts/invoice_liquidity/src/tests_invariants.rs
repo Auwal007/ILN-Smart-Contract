@@ -146,6 +146,7 @@ pub fn check_invariants(env: &Env, contract: &InvoiceLiquidityContractClient) {
             }
             InvoiceStatus::Defaulted
             | InvoiceStatus::Appealed
+            | InvoiceStatus::Disputed
             | InvoiceStatus::Expired
             | InvoiceStatus::Cancelled => {
                 // Terminal / transitional states — no additional field constraints.

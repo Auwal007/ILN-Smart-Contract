@@ -1,4 +1,5 @@
 use soroban_sdk::{contracttype, Address, Env};
+use crate::errors::ContractError;
 
 #[contracttype]
 #[derive(Clone, Debug, PartialEq)]
@@ -8,6 +9,7 @@ pub struct Config {
     pub min_discount_rate_bps: u32,
     pub decay_rate_bps: u32,           // Basis points to decay per period (e.g., 50 = 0.5%)
     pub decay_period_ledgers: u64,     // Ledger count between decay applications
+    pub dispute_timeout_ledgers: u64,  // Ledger count after which a dispute can be auto-resolved
 }
 
 
@@ -31,6 +33,7 @@ pub fn update_config(
     min_discount_rate_bps: u32,
     decay_rate_bps: u32,
     decay_period_ledgers: u64,
+    dispute_timeout_ledgers: u64,
 ) -> Result<(), ConfigError> {
     let admin = crate::storage::get_admin(env).ok_or(ConfigError::Unauthorized)?;
     caller.require_auth();
@@ -51,8 +54,10 @@ pub fn update_config(
         min_discount_rate_bps,
         decay_rate_bps,
         decay_period_ledgers,
+        dispute_timeout_ledgers,
     };
 
     crate::storage::set_config(env, &new_config);
     Ok(())
 }
+
