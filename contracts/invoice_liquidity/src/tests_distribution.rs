@@ -9,7 +9,7 @@ use soroban_sdk::{
 };
 
 #[contracttype]
-enum DistStorageKey {
+enum Distcrate::storage::DataKey {
     Lp(Address),
     Freelancer(Address),
     PayerOnTime(Address),
@@ -21,7 +21,7 @@ struct MockDistribution;
 #[contractimpl]
 impl MockDistribution {
     pub fn accrue_lp(env: Env, lp: Address, amount_usdc_equivalent: i128) {
-        let key = DistStorageKey::Lp(lp);
+        let key = Distcrate::storage::DataKey::Lp(lp);
         let current: i128 = env.storage().persistent().get(&key).unwrap_or(0);
         env.storage()
             .persistent()
@@ -29,14 +29,14 @@ impl MockDistribution {
     }
 
     pub fn accrue_settlement(env: Env, freelancer: Address, payer: Address, on_time: bool) {
-        let freelancer_key = DistStorageKey::Freelancer(freelancer);
+        let freelancer_key = Distcrate::storage::DataKey::Freelancer(freelancer);
         let freelancer_count: u64 = env.storage().persistent().get(&freelancer_key).unwrap_or(0);
         env.storage()
             .persistent()
             .set(&freelancer_key, &(freelancer_count + 1));
 
         if on_time {
-            let payer_key = DistStorageKey::PayerOnTime(payer);
+            let payer_key = Distcrate::storage::DataKey::PayerOnTime(payer);
             let payer_count: u64 = env.storage().persistent().get(&payer_key).unwrap_or(0);
             env.storage()
                 .persistent()
@@ -47,21 +47,21 @@ impl MockDistribution {
     pub fn lp_volume(env: Env, lp: Address) -> i128 {
         env.storage()
             .persistent()
-            .get(&DistStorageKey::Lp(lp))
+            .get(&Distcrate::storage::DataKey::Lp(lp))
             .unwrap_or(0)
     }
 
     pub fn freelancer_settled(env: Env, freelancer: Address) -> u64 {
         env.storage()
             .persistent()
-            .get(&DistStorageKey::Freelancer(freelancer))
+            .get(&Distcrate::storage::DataKey::Freelancer(freelancer))
             .unwrap_or(0)
     }
 
     pub fn payer_on_time(env: Env, payer: Address) -> u64 {
         env.storage()
             .persistent()
-            .get(&DistStorageKey::PayerOnTime(payer))
+            .get(&Distcrate::storage::DataKey::PayerOnTime(payer))
             .unwrap_or(0)
     }
 }

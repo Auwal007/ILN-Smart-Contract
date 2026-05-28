@@ -12,11 +12,7 @@ pub struct Config {
     pub dispute_timeout_ledgers: u64,  // Ledger count after which a dispute can be auto-resolved
 }
 
-#[contracttype]
-pub enum ConfigKey {
-    Config,
-    Admin,
-}
+
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum ConfigError {
@@ -27,34 +23,7 @@ pub enum ConfigError {
 
 const MAX_BONUS_BPS: u32 = 500;
 
-pub fn get_admin(env: &Env) -> Result<Address, ConfigError> {
-    env.storage()
-        .instance()
-        .get(&ConfigKey::Admin)
-        .ok_or(ConfigError::Unauthorized)
-}
 
-pub fn set_admin(env: &Env, admin: &Address) {
-    env.storage().instance().set(&ConfigKey::Admin, admin);
-}
-
-pub fn get_config(env: &Env) -> Result<Config, ConfigError> {
-    env.storage()
-        .instance()
-        .get(&ConfigKey::Config)
-        .ok_or(ConfigError::Unauthorized)
-}
-
-pub fn set_config(env: &Env, config: &Config) -> Result<(), ConfigError> {
-    if config.bonus_bps > MAX_BONUS_BPS {
-        return Err(ConfigError::InvalidBonusBps);
-    }
-    if config.min_discount_rate_bps == 0 {
-        return Err(ConfigError::InvalidMinDiscountRate);
-    }
-    env.storage().instance().set(&ConfigKey::Config, config);
-    Ok(())
-}
 
 pub fn update_config(
     env: &Env,
@@ -66,10 +35,17 @@ pub fn update_config(
     decay_period_ledgers: u64,
     dispute_timeout_ledgers: u64,
 ) -> Result<(), ConfigError> {
-    let admin = get_admin(env)?;
+    let admin = crate::storage::get_admin(env).ok_or(ConfigError::Unauthorized)?;
     caller.require_auth();
     if caller != &admin {
         return Err(ConfigError::Unauthorized);
+    }
+
+    if bonus_bps > MAX_BONUS_BPS {
+        return Err(ConfigError::InvalidBonusBps);
+    }
+    if min_discount_rate_bps == 0 {
+        return Err(ConfigError::InvalidMinDiscountRate);
     }
 
     let new_config = Config {
@@ -81,6 +57,7 @@ pub fn update_config(
         dispute_timeout_ledgers,
     };
 
-    set_config(env, &new_config)
+    crate::storage::set_config(env, &new_config);
+    Ok(())
 }
 

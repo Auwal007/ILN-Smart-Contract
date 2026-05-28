@@ -197,7 +197,7 @@ pub fn next_invoice_id(env: &Env) -> u64 {
 }
 
 // ----------------------------------------------------------------
-// Payer reputation helpers
+// Reputation Score
 // ----------------------------------------------------------------
 
 /// Get a payer's reputation score (0-100, default 50)
