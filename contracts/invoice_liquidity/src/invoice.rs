@@ -1,5 +1,5 @@
 use crate::storage::DataKey as StorageKey;
-use soroban_sdk::{contracttype, Address, BytesN, Env, Symbol};
+use soroban_sdk::{contracttype, Address, BytesN, Env, Symbol, IntoVal};
 
 // ----------------------------------------------------------------
 // Status enum — tracks lifecycle of invoice

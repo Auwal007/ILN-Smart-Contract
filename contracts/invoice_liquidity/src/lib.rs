@@ -201,7 +201,8 @@ impl InvoiceLiquidityContract {
     pub fn set_price_oracle(env: Env, oracle: Address) -> Result<(), ContractError> {
         require_admin(&env)?;
         let admin = get_admin(&env).ok_or(ContractError::Unauthorized)?;
-        crate::config::set_price_oracle(&env, &admin, oracle)?;
+        crate::config::set_price_oracle(&env, &admin, oracle)
+            .map_err(|_| ContractError::Unauthorized)?;
         Ok(())
     }
 
@@ -1342,7 +1343,7 @@ impl InvoiceLiquidityContract {
             invoice_id,
             &AppealRecord {
                 evidence_hash: evidence_hash.clone(),
-                appealed_at: now,
+                appealed_at: now.try_into().unwrap(),
                 pre_default_score,
             },
         );
@@ -1562,7 +1563,7 @@ impl InvoiceLiquidityContract {
 
         let now_ledger = env.ledger().sequence();
 
-        if u64::from(now_ledger) < dispute.disputed_at + config.dispute_timeout_ledgers {
+        if u64::from(now_ledger) < u64::from(dispute.disputed_at) + config.dispute_timeout_ledgers {
             return Err(ContractError::Unauthorized); // Or a more specific error like TimeoutNotReached
         }
 

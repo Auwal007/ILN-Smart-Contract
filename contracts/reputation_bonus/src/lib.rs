@@ -7,13 +7,11 @@ pub mod rate_logic;
 pub mod reputation;
 pub mod errors;
 
-use crate::config::{get_config, set_admin, set_config, update_config, Config, ConfigError};
-use crate::invoice::{get_reputation, set_reputation, submit_invoice, Invoice, InvoiceError};
-use soroban_sdk::{contract, contractimpl, Address, Env};
-use crate::config::{Config, update_config, get_config, set_config, set_admin};
-use crate::invoice::{Invoice, submit_invoice, mark_paid, handle_default};
+use crate::config::{get_config, set_admin, set_config, update_config, Config};
+use crate::invoice::{submit_invoice, mark_paid, handle_default, Invoice};
 use crate::reputation::{read_reputation, ReputationScore};
 use crate::errors::ContractError;
+use soroban_sdk::{contract, contractimpl, Address, Env};
 
 #[contract]
 pub struct ReputationBonusContract;
