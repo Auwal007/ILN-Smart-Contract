@@ -13,6 +13,9 @@ mod tests_new_features;
 mod tests_pagination;
 mod tests_regression;
 mod tests_xlm_support;
+#[cfg(test)]
+mod tests_discount_rate;
+pub mod constants;
 
 pub use crate::invoice::{
     AppealRecord, Invoice, InvoiceParams, InvoiceStatus, LpFundRequest, ReputationProfile,
@@ -421,6 +424,10 @@ impl InvoiceLiquidityContract {
 
         if freelancer == payer {
             return Err(ContractError::SelfInvoice);
+        }
+
+        if discount_rate == 0 || discount_rate > crate::constants::MAX_DISCOUNT_RATE {
+            return Err(ContractError::InvalidDiscountRate);
         }
 
         validate_invoice_terms(&env, amount, due_date, discount_rate)?;
