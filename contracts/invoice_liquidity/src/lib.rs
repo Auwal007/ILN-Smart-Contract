@@ -95,6 +95,10 @@ impl InvoiceLiquidityContract {
             .instance()
             .set(&crate::storage::DataKey::MaxDiscountRate, &5000_u32);
 
+        if !env.storage().instance().has(&StorageKey::NextInvoiceId) {
+            env.storage().instance().set(&StorageKey::NextInvoiceId, &1_u64);
+        }
+
         // Initialize config with XLM SAC address
         let initial_config = crate::config::Config {
             high_rep_threshold: 70,
@@ -426,7 +430,7 @@ impl InvoiceLiquidityContract {
             return Err(ContractError::Unauthorized);
         }
 
-        let id = next_invoice_id(&env);
+        let id = next_invoice_id(&env)?;
 
         // Capture the freelancer's reputation score at submission time
         let submitter_reputation = get_payer_score(&env, &freelancer);
@@ -566,7 +570,7 @@ impl InvoiceLiquidityContract {
                 return Err(ContractError::Unauthorized);
             }
 
-            let id = next_invoice_id(&env);
+            let id = next_invoice_id(&env)?;
 
             // Capture the freelancer's reputation score at submission time
             let submitter_reputation = get_payer_score(&env, &params.freelancer);

@@ -235,16 +235,19 @@ pub fn next_invoice_id(env: &Env) -> u64 {
         .get(&StorageKey::InvoiceCount)
         .unwrap_or(0);
 
-    let next = current + 1;
+pub fn write_next_invoice_id(env: &Env, id: u64) {
+    env.storage().instance().set(&StorageKey::NextInvoiceId, &id);
+}
 
-    env.storage()
-        .persistent()
-        .set(&StorageKey::InvoiceCount, &next);
-    env.storage()
-        .persistent()
-        .extend_ttl(&StorageKey::InvoiceCount, 1_000_000, 2_000_000);
+pub fn next_invoice_id(env: &Env) -> Result<u64, crate::errors::ContractError> {
+    let current_id = read_next_invoice_id(env);
+    let next_id = current_id
+        .checked_add(1)
+        .ok_or(crate::errors::ContractError::ArithmeticOverflow)?;
 
-    next
+    write_next_invoice_id(env, next_id);
+
+    Ok(current_id)
 }
 
 // ----------------------------------------------------------------
