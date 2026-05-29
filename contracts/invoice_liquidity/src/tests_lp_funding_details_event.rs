@@ -1,16 +1,15 @@
 #![cfg(test)]
 
 use crate::{
-    events::InvoiceFunded,
-    InvoiceLiquidityContract,
-    InvoiceLiquidityContractClient,
-    InvoiceStatus,
+    events::InvoiceFunded, InvoiceLiquidityContract, InvoiceLiquidityContractClient, InvoiceStatus,
 };
 
 use soroban_sdk::{
-    testutils::{Address as _, Ledger, Events},
+    testutils::{Address as _, Events, Ledger},
     token::{Client as TokenClient, StellarAssetClient},
-    Address, Env, IntoVal, xdr::ToXdr, xdr::FromXdr,
+    xdr::FromXdr,
+    xdr::ToXdr,
+    Address, Env, IntoVal,
 };
 
 #[test]
@@ -48,11 +47,7 @@ fn tests_lp_funding_details_event() {
     let contract_id = env.register(InvoiceLiquidityContract, ());
     let client = InvoiceLiquidityContractClient::new(&env, &contract_id);
 
-    client.initialize(
-        &admin,
-        &token_address,
-        &token_address,
-    );
+    client.initialize(&admin, &token_address, &token_address);
 
     // ------------------------------------------------------------
     // Ledger timestamp
@@ -79,15 +74,11 @@ fn tests_lp_funding_details_event() {
     // ------------------------------------------------------------
     // Fund invoice
     // ------------------------------------------------------------
-    client.fund_invoice(
-        &lp,
-        &invoice_id,
-        &5_000_000i128,
-    );
+    client.fund_invoice(&lp, &invoice_id, &5_000_000i128);
 
     // ------------------------------------------------------------
     // Verify event emitted
     // ------------------------------------------------------------
     let all_events = env.events().all();
     assert!(!all_events.events().is_empty());
-    }
+}

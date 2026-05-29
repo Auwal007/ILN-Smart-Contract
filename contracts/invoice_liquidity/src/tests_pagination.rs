@@ -1,11 +1,8 @@
 #![cfg(test)]
 
 use super::*;
-use soroban_sdk::{
-    testutils::Address as _,
-    Address, Vec,
-};
 use crate::test::setup;
+use soroban_sdk::{testutils::Address as _, Address, Vec};
 
 #[test]
 fn test_list_invoices_by_submitter_pagination() {
@@ -56,7 +53,9 @@ fn test_list_invoices_by_submitter_empty() {
     let env = &t.env;
     let unknown_address = Address::generate(env);
 
-    let result = t.contract.list_invoices_by_submitter(&unknown_address, &0, &10);
+    let result = t
+        .contract
+        .list_invoices_by_submitter(&unknown_address, &0, &10);
     assert_eq!(result.len(), 0);
 }
 
@@ -130,16 +129,43 @@ fn test_list_invoices_by_submitter_after_transfer() {
     );
 
     // freelancer1 should have 1 invoice
-    assert_eq!(t.contract.list_invoices_by_submitter(&freelancer1, &0, &10).len(), 1);
+    assert_eq!(
+        t.contract
+            .list_invoices_by_submitter(&freelancer1, &0, &10)
+            .len(),
+        1
+    );
     // freelancer2 should have 0
-    assert_eq!(t.contract.list_invoices_by_submitter(&freelancer2, &0, &10).len(), 0);
+    assert_eq!(
+        t.contract
+            .list_invoices_by_submitter(&freelancer2, &0, &10)
+            .len(),
+        0
+    );
 
     // Transfer to freelancer2
     t.contract.transfer_invoice(&id, &freelancer2);
 
     // freelancer1 should have 0
-    assert_eq!(t.contract.list_invoices_by_submitter(&freelancer1, &0, &10).len(), 0);
+    assert_eq!(
+        t.contract
+            .list_invoices_by_submitter(&freelancer1, &0, &10)
+            .len(),
+        0
+    );
     // freelancer2 should have 1
-    assert_eq!(t.contract.list_invoices_by_submitter(&freelancer2, &0, &10).len(), 1);
-    assert_eq!(t.contract.list_invoices_by_submitter(&freelancer2, &0, &10).get(0).unwrap().id, id);
+    assert_eq!(
+        t.contract
+            .list_invoices_by_submitter(&freelancer2, &0, &10)
+            .len(),
+        1
+    );
+    assert_eq!(
+        t.contract
+            .list_invoices_by_submitter(&freelancer2, &0, &10)
+            .get(0)
+            .unwrap()
+            .id,
+        id
+    );
 }

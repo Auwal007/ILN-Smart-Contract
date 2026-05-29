@@ -101,7 +101,9 @@ pub fn submit_invoice(
         .get(&InvoiceKey::InvoiceCount)
         .unwrap_or(0);
     let next_id = count.checked_add(1).ok_or(InvoiceError::ArithmeticError)?;
-    env.storage().instance().set(&InvoiceKey::InvoiceCount, &next_id);
+    env.storage()
+        .instance()
+        .set(&InvoiceKey::InvoiceCount, &next_id);
 
     let invoice = Invoice {
         id: next_id,

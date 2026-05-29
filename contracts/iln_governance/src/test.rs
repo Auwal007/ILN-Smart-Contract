@@ -5,10 +5,7 @@
 
 use super::*;
 use soroban_sdk::{
-    testutils::{
-        storage::Temporary,
-        Address as _, Events, Ledger,
-    },
+    testutils::{storage::Temporary, Address as _, Events, Ledger},
     token::{Client as TokenClient, StellarAssetClient},
     Address, BytesN, Env,
 };
@@ -202,9 +199,9 @@ fn test_proposal_creation_snapshots_proposer_balance() {
     let id = create_fee_proposal(&t);
 
     let snapshot_key = StorageKey::VoteWeightSnapshot(id, t.proposer.clone());
-    let snapshot: i128 = t
-        .env
-        .as_contract(&t.contract.address, || t.env.storage().persistent().get(&snapshot_key).unwrap());
+    let snapshot: i128 = t.env.as_contract(&t.contract.address, || {
+        t.env.storage().persistent().get(&snapshot_key).unwrap()
+    });
 
     assert_eq!(snapshot, t.gov_token.balance(&t.proposer));
 }
@@ -373,7 +370,10 @@ fn test_cast_vote_emits_vote_cast_event() {
     // Verify the VoteCast event was emitted by checking the contract emitted events.
     let events = t.env.events().all().filter_by_contract(&t.contract.address);
     // At least one event must have been emitted.
-    assert!(!events.events().is_empty(), "VoteCast event should be emitted");
+    assert!(
+        !events.events().is_empty(),
+        "VoteCast event should be emitted"
+    );
 }
 
 // ── execute_proposal integration ─────────────────────────────────────────────

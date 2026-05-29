@@ -193,17 +193,17 @@ fn test_resolve_dispute_upheld_refunds_lp() {
     let initial_funder_balance = t.token.balance(&t.funder);
 
     t.contract.fund_invoice(&t.funder, &id, &INVOICE_AMOUNT);
-    
+
     assert_eq!(t.token.balance(&t.funder), initial_funder_balance - cost);
 
     t.contract.dispute_invoice(&id, &reason_hash(&t.env));
-    
+
     // Admin upholds dispute (resolution = 1)
     t.contract.resolve_dispute(&id, &reason_hash(&t.env), &1);
 
     let invoice = t.contract.get_invoice(&id);
     assert_eq!(invoice.status, InvoiceStatus::Cancelled);
-    
+
     // Funder should be refunded the cost (principal - discount)
     assert_eq!(t.token.balance(&t.funder), initial_funder_balance);
 }
@@ -224,7 +224,7 @@ fn test_resolve_dispute_rejected_restores_funded_status() {
 
     t.contract.fund_invoice(&t.funder, &id, &INVOICE_AMOUNT);
     t.contract.dispute_invoice(&id, &reason_hash(&t.env));
-    
+
     // Admin rejects dispute (resolution = 2)
     t.contract.resolve_dispute(&id, &reason_hash(&t.env), &2);
 
@@ -257,7 +257,7 @@ fn test_non_payer_cannot_dispute() {
 #[test]
 fn test_auto_resolve_dispute_timeout_behavior() {
     let t = setup_dispute();
-    
+
     let config = Config {
         high_rep_threshold: 80,
         bonus_bps: 200,

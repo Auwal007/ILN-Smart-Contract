@@ -211,11 +211,7 @@ impl GovContract {
             voting_end,
         };
 
-        let token_addr: Address = env
-            .storage()
-            .instance()
-            .get(&StorageKey::GovToken)
-            .unwrap();
+        let token_addr: Address = env.storage().instance().get(&StorageKey::GovToken).unwrap();
         let token = TokenClient::new(&env, &token_addr);
         let proposer_weight = token.balance(&proposer);
         env.storage().persistent().set(
@@ -272,11 +268,7 @@ impl GovContract {
             return Err(GovernanceError::AlreadyVoted);
         }
 
-        let token_addr: Address = env
-            .storage()
-            .instance()
-            .get(&StorageKey::GovToken)
-            .unwrap();
+        let token_addr: Address = env.storage().instance().get(&StorageKey::GovToken).unwrap();
         let token = TokenClient::new(&env, &token_addr);
         let snapshot_key = StorageKey::VoteWeightSnapshot(proposal_id, voter.clone());
         let weight: i128 = match env.storage().persistent().get(&snapshot_key) {
@@ -382,11 +374,7 @@ impl GovContract {
             }
             ProposalAction::RemoveToken(token) => {
                 let args: Vec<soroban_sdk::Val> = vec![&env, token.into_val(&env)];
-                env.invoke_contract::<()>(
-                    &iln_contract,
-                    &Symbol::new(&env, "remove_token"),
-                    args,
-                );
+                env.invoke_contract::<()>(&iln_contract, &Symbol::new(&env, "remove_token"), args);
             }
             ProposalAction::UpdateMaxDiscountRate(rate) => {
                 let args: Vec<soroban_sdk::Val> = vec![&env, rate.into_val(&env)];
@@ -409,10 +397,7 @@ impl GovContract {
     // ── Getters ──────────────────────────────────────────────────
 
     /// Issue #59: get_proposal(id) → GovernanceProposal
-    pub fn get_proposal(
-        env: Env,
-        proposal_id: u64,
-    ) -> Result<GovernanceProposal, GovernanceError> {
+    pub fn get_proposal(env: Env, proposal_id: u64) -> Result<GovernanceProposal, GovernanceError> {
         env.storage()
             .persistent()
             .get(&StorageKey::Proposal(proposal_id))

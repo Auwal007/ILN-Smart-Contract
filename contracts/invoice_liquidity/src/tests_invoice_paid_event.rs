@@ -1,11 +1,7 @@
 #![cfg(test)]
 
 use super::*;
-use crate::{
-    events::InvoicePaid,
-    InvoiceLiquidityContract,
-    InvoiceLiquidityContractClient,
-};
+use crate::{events::InvoicePaid, InvoiceLiquidityContract, InvoiceLiquidityContractClient};
 
 use soroban_sdk::{
     testutils::{Address as _, Events},
@@ -65,11 +61,7 @@ fn emits_invoice_paid_event_with_full_settlement_details() {
     // ------------------------------------------------------------
     // Fund invoice
     // ------------------------------------------------------------
-    client.fund_invoice(
-        &lp,
-        &invoice_id,
-        &1_000_000_i128,
-    );
+    client.fund_invoice(&lp, &invoice_id, &1_000_000_i128);
 
     // ------------------------------------------------------------
     // Expected math

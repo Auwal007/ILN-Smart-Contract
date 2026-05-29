@@ -1,4 +1,4 @@
-use soroban_sdk::{contractevent, Address, BytesN};
+use soroban_sdk::{contractevent, Address, BytesN, Symbol};
 
 use crate::invoice::InvoiceStatus;
 
@@ -170,7 +170,20 @@ pub struct AdminChanged {
     pub timestamp: u64,
 }
 
-
+/// Emitted whenever a governance-controlled numeric parameter changes.
+///
+/// The `param_name` topic is a stable audit identifier. Keep these strings
+/// unique per parameter so off-chain indexers can reconstruct config history.
+#[contractevent(topics = ["parameter_updated"])]
+#[derive(Clone, Debug, PartialEq)]
+pub struct ParameterUpdated {
+    #[topic]
+    pub param_name: Symbol,
+    pub old_value: i128,
+    pub new_value: i128,
+    #[topic]
+    pub updated_by: Address,
+}
 
 #[contractevent(topics = ["upgraded"])]
 #[derive(Clone, Debug, PartialEq)]
@@ -232,7 +245,7 @@ pub struct DisputeResolved {
     pub invoice_id: u64,
     #[topic]
     pub resolution_hash: BytesN<32>, // Optional hash of resolution details
-    pub resolution: u32,             // Ruling: 1 = Upheld (Payer right), 2 = Rejected (Freelancer right)
+    pub resolution: u32, // Ruling: 1 = Upheld (Payer right), 2 = Rejected (Freelancer right)
     pub resolved_at: u64,
 }
 

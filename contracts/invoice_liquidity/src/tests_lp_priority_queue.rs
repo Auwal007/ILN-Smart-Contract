@@ -71,7 +71,16 @@ fn setup_queue() -> QueueTestEnv {
     ledger.timestamp = 1_700_000_000;
     env.ledger().set(ledger);
 
-    QueueTestEnv { env, contract, token, freelancer, payer, lp_a, lp_b, lp_c }
+    QueueTestEnv {
+        env,
+        contract,
+        token,
+        freelancer,
+        payer,
+        lp_a,
+        lp_b,
+        lp_c,
+    }
 }
 
 fn submit_invoice(t: &QueueTestEnv) -> u64 {

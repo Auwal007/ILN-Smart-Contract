@@ -1,12 +1,8 @@
 #![cfg(test)]
 
 use super::*;
-use soroban_sdk::{
-    testutils::Address as _,
-    token::StellarAssetClient,
-    Address, Vec,
-};
 use crate::test::setup;
+use soroban_sdk::{testutils::Address as _, token::StellarAssetClient, Address, Vec};
 
 #[test]
 fn test_list_invoices_by_lp_pagination() {
@@ -31,7 +27,8 @@ fn test_list_invoices_by_lp_pagination() {
             &300,
             &t.token.address,
         );
-        t.contract.fund_invoice(&lp, &id, &(1_000_000_000 + i as i128));
+        t.contract
+            .fund_invoice(&lp, &id, &(1_000_000_000 + i as i128));
     }
 
     // Page 0, size 2
@@ -64,7 +61,7 @@ fn test_list_invoices_by_lp_no_duplicates_on_partial_funding() {
 
     let lp = Address::generate(env);
     token_admin.mint(&lp, &2_000_000_000);
-    
+
     let freelancer = Address::generate(env);
     let payer = Address::generate(env);
     let due_date = env.ledger().timestamp() + 86400 * 30;

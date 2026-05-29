@@ -1,3 +1,6 @@
+use crate::events::{
+    emit_parameter_updated, PARAM_BONUS_BPS, PARAM_HIGH_REP_THRESHOLD, PARAM_MIN_DISCOUNT_RATE_BPS,
+};
 use soroban_sdk::{contracterror, contracttype, Address, Env};
 
 #[contracttype]
@@ -61,6 +64,7 @@ pub fn update_config(
     min_discount_rate_bps: u32,
 ) -> Result<(), ConfigError> {
     let admin = get_admin(env)?;
+    let old_config = get_config(env)?;
     caller.require_auth();
     if caller != &admin {
         return Err(ConfigError::Unauthorized);
@@ -72,5 +76,29 @@ pub fn update_config(
         min_discount_rate_bps,
     };
 
-    set_config(env, &new_config)
+    set_config(env, &new_config)?;
+
+    emit_parameter_updated(
+        env,
+        PARAM_HIGH_REP_THRESHOLD,
+        old_config.high_rep_threshold as i128,
+        high_rep_threshold as i128,
+        caller,
+    );
+    emit_parameter_updated(
+        env,
+        PARAM_BONUS_BPS,
+        old_config.bonus_bps as i128,
+        bonus_bps as i128,
+        caller,
+    );
+    emit_parameter_updated(
+        env,
+        PARAM_MIN_DISCOUNT_RATE_BPS,
+        old_config.min_discount_rate_bps as i128,
+        min_discount_rate_bps as i128,
+        caller,
+    );
+
+    Ok(())
 }

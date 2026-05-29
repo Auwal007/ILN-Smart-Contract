@@ -80,7 +80,7 @@ fn test_partial_then_full_payment() {
     t.contract.fund_invoice(&t.funder, &id, &INVOICE_AMOUNT);
 
     let partial_amount = 4_000_000;
-    
+
     let initial_payer_balance = t.token.balance(&t.payer);
 
     t.contract.mark_paid(&id, &partial_amount);
@@ -88,7 +88,10 @@ fn test_partial_then_full_payment() {
     let invoice = t.contract.get_invoice(&id);
     assert_eq!(invoice.amount_paid, partial_amount);
     assert_eq!(invoice.status, InvoiceStatus::Funded); // still funded
-    assert_eq!(t.token.balance(&t.payer), initial_payer_balance - partial_amount);
+    assert_eq!(
+        t.token.balance(&t.payer),
+        initial_payer_balance - partial_amount
+    );
 
     // Verify partial event (removed flaky check)
     // let events = t.env.events().all();
@@ -119,13 +122,13 @@ fn test_overpayment_guard() {
     t.contract.fund_invoice(&t.funder, &id, &INVOICE_AMOUNT);
 
     let over_amount = INVOICE_AMOUNT + 1_000;
-    
+
     let result = t.contract.try_mark_paid(&id, &over_amount);
     assert_eq!(result, Err(Ok(ContractError::OverpaymentRejected)));
 
     // Pay partial, then try overpay on remainder
     t.contract.mark_paid(&id, &5_000_000);
-    
+
     let result2 = t.contract.try_mark_paid(&id, &6_000_000); // 1M over remainder
     assert_eq!(result2, Err(Ok(ContractError::OverpaymentRejected)));
 }

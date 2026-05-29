@@ -1,12 +1,13 @@
 #![no_std]
 
 pub mod config;
+pub mod events;
 pub mod invoice;
 pub mod rate_logic;
 
+use crate::config::{get_config, set_admin, set_config, update_config, Config, ConfigError};
+use crate::invoice::{get_reputation, set_reputation, submit_invoice, Invoice, InvoiceError};
 use soroban_sdk::{contract, contractimpl, Address, Env};
-use crate::config::{Config, ConfigError, update_config, get_config, set_config, set_admin};
-use crate::invoice::{Invoice, InvoiceError, submit_invoice, set_reputation, get_reputation};
 
 #[contract]
 pub struct ReputationBonusContract;
@@ -32,7 +33,13 @@ impl ReputationBonusContract {
         bonus_bps: u32,
         min_discount_rate_bps: u32,
     ) -> Result<(), ConfigError> {
-        update_config(&env, &caller, high_rep_threshold, bonus_bps, min_discount_rate_bps)
+        update_config(
+            &env,
+            &caller,
+            high_rep_threshold,
+            bonus_bps,
+            min_discount_rate_bps,
+        )
     }
 
     pub fn set_reputation(env: Env, address: Address, score: u32) {
@@ -51,6 +58,13 @@ impl ReputationBonusContract {
         due_date: u64,
         base_discount_rate_bps: u32,
     ) -> Result<Invoice, InvoiceError> {
-        submit_invoice(&env, &freelancer, &payer, amount, due_date, base_discount_rate_bps)
+        submit_invoice(
+            &env,
+            &freelancer,
+            &payer,
+            amount,
+            due_date,
+            base_discount_rate_bps,
+        )
     }
 }
